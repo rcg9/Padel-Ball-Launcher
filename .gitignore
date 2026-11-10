@@ -1,0 +1,29 @@
+# Dependencies and caches
+**/node_modules/
+**/.gradle/
+**/build/
+**/gradle-*/
+**/.expo/
+
+# Android local and generated files
+**/local.properties
+**/debug.keystore
+**/*.jks
+**/*.keystore
+**/hs_err_pid*.log
+
+# iOS generated files
+**/Pods/
+**/DerivedData/
+**/ios/build/
+
+# Editors
+**/.idea/
+**/.vscode/
+
+# Logs and system files
+*.log
+.DS_Store
+Thumbs.db
+
+**/debug.keystore

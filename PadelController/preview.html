@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PadelController – Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --background: #F0F2F5;
+      --surface: #FFFFFF;
+      --primary: #059669;
+      --primary-dark: #047857;
+      --danger: #DC2626;
+      --warning: #D97706;
+      --text: #111827;
+      --text-secondary: #6B7280;
+      --border: #E5E7EB;
+      --info-bg: #EFF6FF;
+      --info-border: #BFDBFE;
+      --info-text: #1E40AF;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .phone-frame {
+      width: 375px;
+      height: 812px;
+      background: var(--background);
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 0 2px #333, 0 0 0 6px #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Status bar */
+    .status-bar {
+      height: 50px;
+      background: var(--background);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 25px;
+      flex-shrink: 0;
+    }
+
+    .status-bar-time {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .status-bar-icons {
+      display: flex;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    /* Screen content */
+    .screen {
+      flex: 1;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .screen-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 10px;
+    }
+
+    .screen-scroll::-webkit-scrollbar {
+      width: 0;
+    }
+
+    /* Bottom tabs */
+    .bottom-tabs {
+      height: 60px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-shrink: 0;
+      padding-bottom: 6px;
+    }
+
+    .tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tab-icon {
+      font-size: 22px;
+      transition: transform 0.2s;
+      position: relative;
+    }
+
+    .tab.active .tab-icon {
+      transform: scale(1.1);
+    }
+
+    .tab-badge {
+      position: absolute;
+      top: -3px;
+      right: -5px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--danger);
+    }
+
+    .tab-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+    }
+
+    .tab.active .tab-label {
+      color: var(--primary);
+    }
+
+    /* ==================== */
+    /* SCREEN 1: Connexió   */
+    /* ==================== */
+    .header {
+      padding: 20px;
+      text-align: center;
+    }
+
+    .title {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 18px;
+    }
+
+    .status-container {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      background: var(--surface);
+      border-radius: 12px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+      gap: 12px;
+    }
+
+    .status-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-circle.disconnected { background: var(--danger); }
+    .status-circle.connected { background: var(--primary); }
+    .status-circle.connecting { background: var(--warning); }
+
+    .status-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .button-container {
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      border-radius: 12px;
+      gap: 10px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+      opacity: 0.9;
+    }
+
+    .btn-icon {
+      font-size: 18px;
+    }
+
+    .btn-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .btn-scan { background: var(--primary); }
+    .btn-disconnect { background: var(--text-secondary); }
+    .btn-power { background: var(--primary); }
+    .btn-stop { background: var(--danger); }
+    .btn-disabled { opacity: 0.4; pointer-events: none; }
+
+    .logs-toggle {
+      margin: 14px 20px 0;
+      padding: 12px;
+      background: var(--surface);
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .logs-toggle-text {
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    /* ====================== */
+    /* SCREEN 2: Paràmetres   */
+    /* ====================== */
+    .warning-banner {
+      background: var(--warning);
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 14px;
+    }
+
+    .warning-text {
+      color: #FFFFFF;
+      font-weight: 600;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .content {
+      padding: 0 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .slider-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+
+    .slider-card.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .slider-label {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .slider-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .slider-track {
+      position: relative;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin: 12px 0 8px;
+    }
+
+    .slider-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 3px;
+      transition: width 0.1s;
+    }
+
+    .slider-thumb {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 22px;
+      height: 22px;
+      background: var(--primary);
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(5,150,105,0.4);
+      cursor: pointer;
+      transition: left 0.1s;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin: 8px 0;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      background: var(--primary);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(5,150,105,0.4);
+    }
+
+    .slider-range {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .range-text {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .effect-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+
+    .effect-card.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .effect-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .effect-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .effect-btn {
+      flex: 1;
+      background: var(--border);
+      padding: 14px 8px;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .effect-btn.active {
+      background: var(--primary);
+    }
+
+    .effect-btn-icon {
+      font-size: 22px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .effect-btn-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      display: block;
+    }
+
+    .effect-btn.active .effect-btn-label {
+      color: #FFFFFF;
+    }
+
+    /* ================ */
+    /* SCREEN 3: Cops   */
+    /* ================ */
+    .info-banner {
+      display: flex;
+      align-items: center;
+      background: var(--info-bg);
+      border: 1px solid var(--info-border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 12px;
+      gap: 10px;
+    }
+
+    .info-icon {
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .info-text {
+      font-size: 12.5px;
+      color: var(--info-text);
+      line-height: 1.4;
+    }
+
+    .shots-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: space-between;
+    }
+
+    .shot-button {
+      width: calc(50% - 7px);
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 18px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .shot-button:active {
+      background: var(--primary);
+      border-color: var(--primary);
+      transform: scale(1.04);
+    }
+
+    .shot-button:active .shot-name {
+      color: #FFFFFF;
+    }
+
+    .shot-button.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .shot-icon {
+      font-size: 30px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .shot-icon.flip {
+      transform: rotateY(180deg);
+      display: block;
+    }
+
+    .shot-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      transition: color 0.15s;
+    }
+
+    /* Connection toggle */
+    .sim-controls {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: rgba(30, 30, 50, 0.95);
+      border-radius: 14px;
+      padding: 14px 18px;
+      color: #fff;
+      font-size: 13px;
+      z-index: 100;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sim-controls label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .sim-controls input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .sim-title {
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 8px;
+    }
+
+    /* Log modal */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: flex-end;
+      align-items: flex-end;
+      z-index: 50;
+      border-radius: 40px;
+      overflow: hidden;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--surface);
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 20px;
+      width: 100%;
+      max-height: 70%;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .log-entry {
+      font-family: 'Courier New', monospace;
+      font-size: 11.5px;
+      color: var(--primary);
+      padding: 3px 0;
+    }
+
+    .modal-close {
+      margin-top: 14px;
+      padding: 13px;
+      background: var(--border);
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      border: none;
+      width: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Device scan modal */
+    .device-list {
+      list-style: none;
+    }
+
+    .device-item {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .device-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .device-addr {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+
+    .no-devices {
+      text-align: center;
+      color: var(--text-secondary);
+      padding: 20px 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Simulation Controls -->
+<div class="sim-controls">
+  <div class="sim-title">🛠 Simulació</div>
+  <label>
+    <input type="checkbox" id="simConnected" />
+    Connectat
+  </label>
+  <label style="margin-top: 6px;">
+    <input type="checkbox" id="simMachineOn" />
+    Màquina ON
+  </label>
+</div>
+
+<!-- Phone Frame -->
+<div class="phone-frame">
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="status-bar-time">13:35</span>
+    <div class="status-bar-icons">
+      <span>📶</span>
+      <span>🔋</span>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- SCREEN 1: Connexió    -->
+  <!-- ===================== -->
+  <div class="screen active" id="screen1">
+    <div class="screen-scroll">
+      <div class="header">
+        <div class="title">Control Pàdel</div>
+        <div class="status-container" id="statusContainer">
+          <div class="status-circle disconnected" id="statusCircle"></div>
+          <span class="status-text" id="statusText">DESCONNECTAT</span>
+        </div>
+      </div>
+
+      <div class="button-container" id="s1Buttons">
+        <!-- Dynamic buttons injected by JS -->
+      </div>
+
+      <div class="logs-toggle" onclick="showLogModal()">
+        <span class="logs-toggle-text">📋 Veure log de comunicació</span>
+      </div>
+    </div>
+
+    <!-- Log Modal -->
+    <div class="modal-overlay" id="logModal">
+      <div class="modal-content">
+        <div class="modal-title">Log de comunicació</div>
+        <div id="logEntries">
+          <div class="log-entry">[13:35:01] App iniciada</div>
+          <div class="log-entry">[13:35:02] Bluetooth adapter ready</div>
+        </div>
+        <button class="modal-close" onclick="hideLogModal()">Tancar</button>
+      </div>
+    </div>
+
+    <!-- Device Modal -->
+    <div class="modal-overlay" id="deviceModal">
+      <div class="modal-content">
+        <div class="modal-title">Dispositius BLE propers</div>
+        <ul class="device-list">
+          <li class="device-item" onclick="simulateConnect('PadelMachine')">
+            <div class="device-name">PadelMachine_BLE</div>
+            <div class="device-addr">AA:BB:CC:DD:EE:01</div>
+          </li>
+          <li class="device-item" onclick="simulateConnect('HC-08')">
+            <div class="device-name">HC-08</div>
+            <div class="device-addr">AA:BB:CC:DD:EE:02</div>
+          </li>
+          <li class="device-item" onclick="simulateConnect('HM-10')">
+            <div class="device-name">HM-10</div>
+            <div class="device-addr">AA:BB:CC:DD:EE:03</div>
+          </li>
+        </ul>
+        <button class="modal-close" onclick="hideDeviceModal()">Cancel·lar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== -->
+  <!-- SCREEN 2: Paràmetres    -->
+  <!-- ======================== -->
+  <div class="screen" id="screen2">
+    <div class="screen-scroll">
+      <div class="header">
+        <div class="title">Paràmetres</div>
+        <div class="warning-banner" id="s2Warning">
+          <div class="warning-text">⚠️ Connecta't primer a la pantalla 1</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="slider-card" id="sliderH">
+          <div class="slider-header">
+            <span class="slider-label">↔ Rotació Horitzontal</span>
+            <span class="slider-value" id="valH">90°</span>
+          </div>
+          <input type="range" min="0" max="180" value="90" id="rangeH"
+                 oninput="updateSlider('H', this.value, 180, '°')" />
+          <div class="slider-range">
+            <span class="range-text">0°</span>
+            <span class="range-text">90°</span>
+            <span class="range-text">180°</span>
+          </div>
+        </div>
+
+        <div class="slider-card" id="sliderV">
+          <div class="slider-header">
+            <span class="slider-label">↕ Inclinació Vertical</span>
+            <span class="slider-value" id="valV">30°</span>
+          </div>
+          <input type="range" min="0" max="90" value="30" id="rangeV"
+                 oninput="updateSlider('V', this.value, 90, '°')" />
+          <div class="slider-range">
+            <span class="range-text">0°</span>
+            <span class="range-text">45°</span>
+            <span class="range-text">90°</span>
+          </div>
+        </div>
+
+        <div class="slider-card" id="sliderS">
+          <div class="slider-header">
+            <span class="slider-label">⚡ Velocitat de Llançament</span>
+            <span class="slider-value" id="valS">50%</span>
+          </div>
+          <input type="range" min="0" max="100" value="50" id="rangeS"
+                 oninput="updateSlider('S', this.value, 100, '%')" />
+          <div class="slider-range">
+            <span class="range-text">0%</span>
+            <span class="range-text">50%</span>
+            <span class="range-text">100%</span>
+          </div>
+        </div>
+
+        <div class="effect-card" id="effectCard">
+          <div class="effect-title">Efecte de la pilota</div>
+          <div class="effect-buttons">
+            <button class="effect-btn" onclick="selectEffect(this, 'TS')" data-effect="TS">
+              <span class="effect-btn-icon">🔼</span>
+              <span class="effect-btn-label">TOP SPIN</span>
+            </button>
+            <button class="effect-btn active" onclick="selectEffect(this, 'NR')" data-effect="NR">
+              <span class="effect-btn-icon">➡</span>
+              <span class="effect-btn-label">NORMAL</span>
+            </button>
+            <button class="effect-btn" onclick="selectEffect(this, 'CU')" data-effect="CU">
+              <span class="effect-btn-icon">🔽</span>
+              <span class="effect-btn-label">TALLAT</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================ -->
+  <!-- SCREEN 3: Cops   -->
+  <!-- ================ -->
+  <div class="screen" id="screen3">
+    <div class="screen-scroll">
+      <div class="header">
+        <div class="title">Tipus de Cop</div>
+        <div class="warning-banner" id="s3Warning">
+          <div class="warning-text">⚠️ Connecta't primer a la pantalla 1</div>
+        </div>
+        <div class="info-banner">
+          <span class="info-icon">ℹ️</span>
+          <span class="info-text">La màquina ha d'estar centrada a la línia de saque del camp rival, al mig.</span>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="shots-grid" id="shotsGrid">
+          <!-- Dynamic shots injected by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="bottom-tabs">
+    <div class="tab active" onclick="switchTab(0)">
+      <span class="tab-icon">📶</span>
+      <span class="tab-label">Connexio</span>
+    </div>
+    <div class="tab" onclick="switchTab(1)">
+      <span class="tab-icon">
+        🎛️
+        <span class="tab-badge" id="badge2"></span>
+      </span>
+      <span class="tab-label">Parametres</span>
+    </div>
+    <div class="tab" onclick="switchTab(2)">
+      <span class="tab-icon">
+        🎾
+        <span class="tab-badge" id="badge3"></span>
+      </span>
+      <span class="tab-label">Cops</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ========== STATE ==========
+  let connected = false;
+  let machineOn = false;
+  let currentTab = 0;
+
+  const shots = [
+    { name: 'Dreta', command: 'DR', icon: '➜', flip: false },
+    { name: 'Revés', command: 'RV', icon: '➜', flip: true },
+    { name: 'Volea Dreta', command: 'VD', icon: '⚡➜', flip: false },
+    { name: 'Volea Esquerra', command: 'VE', icon: '⚡➜', flip: true },
+    { name: 'Smash', command: 'SM', icon: '💥', flip: false },
+    { name: 'Bandeja', command: 'BD', icon: '🎾', flip: false },
+    { name: 'Baixada de Paret', command: 'BV', icon: '🧱🎾', flip: false },
+  ];
+
+  // ========== INIT ==========
+  function init() {
+    renderScreen1Buttons();
+    renderShots();
+    updateUI();
+
+    document.getElementById('simConnected').addEventListener('change', (e) => {
+      connected = e.target.checked;
+      if (!connected) {
+        machineOn = false;
+        document.getElementById('simMachineOn').checked = false;
+      }
+      updateUI();
+    });
+
+    document.getElementById('simMachineOn').addEventListener('change', (e) => {
+      if (!connected) {
+        e.target.checked = false;
+        return;
+      }
+      machineOn = e.target.checked;
+      updateUI();
+    });
+  }
+
+  // ========== TABS ==========
+  function switchTab(idx) {
+    currentTab = idx;
+    document.querySelectorAll('.screen').forEach((s, i) => {
+      s.classList.toggle('active', i === idx);
+    });
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', i === idx);
+    });
+  }
+
+  // ========== UI UPDATE ==========
+  function updateUI() {
+    // Status
+    const circle = document.getElementById('statusCircle');
+    const text = document.getElementById('statusText');
+    circle.className = 'status-circle ' + (connected ? 'connected' : 'disconnected');
+
+    if (connected) {
+      text.textContent = 'CONNECTAT – ' + (machineOn ? 'MÀQUINA ENGEGADA' : 'MÀQUINA PARADA');
+    } else {
+      text.textContent = 'DESCONNECTAT';
+    }
+
+    // Badges
+    document.getElementById('badge2').style.display = connected ? 'none' : 'block';
+    document.getElementById('badge3').style.display = connected ? 'none' : 'block';
+
+    // Warnings
+    document.getElementById('s2Warning').style.display = connected ? 'none' : 'block';
+    document.getElementById('s3Warning').style.display = connected ? 'none' : 'block';
+
+    // Disabled states
+    const disableClass = connected ? '' : 'disabled';
+    ['sliderH', 'sliderV', 'sliderS', 'effectCard'].forEach(id => {
+      document.getElementById(id).className = document.getElementById(id).className.replace(' disabled', '');
+      if (!connected) document.getElementById(id).className += ' disabled';
+    });
+
+    document.querySelectorAll('.shot-button').forEach(btn => {
+      btn.classList.toggle('disabled', !connected);
+    });
+
+    renderScreen1Buttons();
+  }
+
+  // ========== SCREEN 1 ==========
+  function renderScreen1Buttons() {
+    const container = document.getElementById('s1Buttons');
+    container.innerHTML = '';
+
+    if (!connected) {
+      container.innerHTML = `
+        <button class="btn btn-scan" onclick="showDeviceModal()">
+          <span class="btn-icon">🔍</span>
+          <span class="btn-text">ESCANEJAR DISPOSITIUS</span>
+        </button>
+      `;
+    } else {
+      container.innerHTML = `
+        <button class="btn btn-disconnect" onclick="simulateDisconnect()">
+          <span class="btn-icon">⏹</span>
+          <span class="btn-text">DESCONNECTAR</span>
+        </button>
+      `;
+    }
+
+    const powerClass = machineOn ? 'btn-stop' : 'btn-power';
+    const disabledClass = !connected ? 'btn-disabled' : '';
+    container.innerHTML += `
+      <button class="btn ${powerClass} ${disabledClass}" onclick="toggleMachine()" ${!connected ? 'disabled' : ''}>
+        <span class="btn-icon">${machineOn ? '⏹' : '▶'}</span>
+        <span class="btn-text">${machineOn ? 'PARAR MÀQUINA' : 'ENGEGAR MÀQUINA'}</span>
+      </button>
+    `;
+  }
+
+  function toggleMachine() {
+    if (!connected) return;
+    machineOn = !machineOn;
+    document.getElementById('simMachineOn').checked = machineOn;
+    addLogEntry(machineOn ? 'TX: PWR:ON' : 'TX: PWR:OFF');
+    addLogEntry('TX: OK');
+    updateUI();
+  }
+
+  // ========== SCREEN 2 ==========
+  function updateSlider(param, value, max, suffix) {
+    document.getElementById('val' + param).textContent = Math.round(value) + suffix;
+    if (connected) {
+      addLogEntry(`TX: ${param}:${String(Math.round(value)).padStart(3, '0')}`);
+    }
+  }
+
+  function selectEffect(btn, effect) {
+    if (!connected) return;
+    document.querySelectorAll('.effect-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    addLogEntry(`TX: EF:${effect}`);
+  }
+
+  // ========== SCREEN 3 ==========
+  function renderShots() {
+    const grid = document.getElementById('shotsGrid');
+    grid.innerHTML = shots.map(shot => `
+      <div class="shot-button ${!connected ? 'disabled' : ''}"
+           onclick="fireShot('${shot.command}', this)">
+        <span class="shot-icon ${shot.flip ? 'flip' : ''}">${shot.icon}</span>
+        <span class="shot-name">${shot.name}</span>
+      </div>
+    `).join('');
+  }
+
+  function fireShot(command, el) {
+    if (!connected) return;
+    el.style.background = 'var(--primary)';
+    el.style.borderColor = 'var(--primary)';
+    el.querySelector('.shot-name').style.color = '#fff';
+    addLogEntry(`TX: COP:${command}`);
+    addLogEntry('TX: OK');
+
+    setTimeout(() => {
+      el.style.background = '';
+      el.style.borderColor = '';
+      el.querySelector('.shot-name').style.color = '';
+    }, 200);
+  }
+
+  // ========== MODALS ==========
+  function showLogModal() {
+    document.getElementById('logModal').classList.add('visible');
+  }
+
+  function hideLogModal() {
+    document.getElementById('logModal').classList.remove('visible');
+  }
+
+  function showDeviceModal() {
+    document.getElementById('deviceModal').classList.add('visible');
+  }
+
+  function hideDeviceModal() {
+    document.getElementById('deviceModal').classList.remove('visible');
+  }
+
+  function simulateConnect(name) {
+    hideDeviceModal();
+    addLogEntry(`Connecting to ${name}...`);
+    addLogEntry('Discovering services...');
+    addLogEntry('UART service found!');
+    addLogEntry(`Connected to ${name}`);
+    connected = true;
+    document.getElementById('simConnected').checked = true;
+    updateUI();
+    renderShots();
+  }
+
+  function simulateDisconnect() {
+    connected = false;
+    machineOn = false;
+    document.getElementById('simConnected').checked = false;
+    document.getElementById('simMachineOn').checked = false;
+    addLogEntry('Disconnected');
+    updateUI();
+    renderShots();
+  }
+
+  // ========== LOGS ==========
+  function addLogEntry(msg) {
+    const container = document.getElementById('logEntries');
+    const now = new Date();
+    const time = now.toLocaleTimeString('ca', { hour12: false });
+    const div = document.createElement('div');
+    div.className = 'log-entry';
+    div.textContent = `[${time}] ${msg}`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // ========== START ==========
+  init();
+</script>
+
+</body>
+</html>
